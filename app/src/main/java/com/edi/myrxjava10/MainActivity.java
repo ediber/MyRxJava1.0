@@ -13,6 +13,7 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
         button1.setOnClickListener(new Button1Listener());
 
-        // map example
+        //  map example ***********************************************************
         Observer<Integer> observerForTxt1 = createObserverForTxt1();
 
         // PublishSubject extends observabale, next can be invoked after creation
@@ -65,6 +66,18 @@ public class MainActivity extends AppCompatActivity {
                 return number + 1;
             }
         })
+                .observeOn(Schedulers.newThread())    // new thread
+                .map(new Func1<Integer, Integer>() {
+                    @Override
+                    public Integer call(Integer number) {
+                        try {
+                            Thread.sleep(10000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        return number + 7;
+                    }
+                })
                 .subscribe(observerForTxt1);
 
         Observer<Integer> observerForTxt2 = createObserverForTxt2();
@@ -73,8 +86,7 @@ public class MainActivity extends AppCompatActivity {
         btnMap.setOnClickListener(new Button2Listener());
 
 
-
-        // flat map example
+        // flat map example ***********************************************************
         subjectFlatMap = PublishSubject.create();
         subjectFlatMap.flatMap(new Func1<Integer, Observable<Integer>>() {
             @Override
@@ -85,10 +97,9 @@ public class MainActivity extends AppCompatActivity {
                 return Observable.from(lst);
             }
         })
-        .subscribe(observerForTxt1)
+                .subscribe(observerForTxt1)
         ;
 
-//        subjectFlatMap.subscribe(observerForTxt1);
         subjectFlatMap.subscribe(observerForTxt2);
 
         btnFlatMap.setOnClickListener(new View.OnClickListener() {
@@ -115,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             public void onNext(Integer num) {
                 Log.e(TAG, "onNext: " + num);
                 txt1.setText(num + "");
-                counter ++ ;
+                counter++;
                 txtCounter.setText(counter + "");
             }
         };
