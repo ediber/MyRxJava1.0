@@ -21,8 +21,11 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.button1)
     View button1;
 
-    @BindView(R.id.button2)
-    View button2;
+    @BindView(R.id.btnMap)
+    View btnMap;
+
+    @BindView(R.id.btnFlatMap)
+    View btnFlatMap;
 
     @BindView(R.id.txt1)
     TextView txt1;
@@ -30,12 +33,17 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.txt2)
     TextView txt2;
 
+    @BindView(R.id.txtCounter)
+    TextView txtCounter;
+
     @BindView(R.id.editText1)
     TextView editText1;
 
     private Observable<Integer> observable;
-    PublishSubject<Integer> publishSubject;
+    private PublishSubject<Integer> publishSubjectMap;
     private Subscription subscription;
+    private PublishSubject<Integer> subjectFlatMap;
+    private int counter = 0;
 
 
     @Override
@@ -46,26 +54,49 @@ public class MainActivity extends AppCompatActivity {
 
         button1.setOnClickListener(new Button1Listener());
 
-//        observable = createObservable();
-//        observable.subscribe()
-
+        // map example
         Observer<Integer> observerForTxt1 = createObserverForTxt1();
 
         // PublishSubject extends observabale, next can be invoked after creation
-        publishSubject = PublishSubject.create();
-        publishSubject.map((new Func1<Integer, Integer>() {
+        publishSubjectMap = PublishSubject.create();
+        publishSubjectMap.map(new Func1<Integer, Integer>() {
             @Override
             public Integer call(Integer number) {
                 return number + 1;
             }
-        })).subscribe(observerForTxt1);
-
+        })
+                .subscribe(observerForTxt1);
 
         Observer<Integer> observerForTxt2 = createObserverForTxt2();
-        subscription = publishSubject.subscribe(observerForTxt2);
+        subscription = publishSubjectMap.subscribe(observerForTxt2);
+
+        btnMap.setOnClickListener(new Button2Listener());
 
 
-        button2.setOnClickListener(new Button2Listener());
+
+        // flat map example
+        subjectFlatMap = PublishSubject.create();
+        subjectFlatMap.flatMap(new Func1<Integer, Observable<Integer>>() {
+            @Override
+            public Observable<Integer> call(Integer num) {
+                Integer[] lst = new Integer[2];
+                lst[0] = num * 2;
+                lst[1] = num * 3;
+                return Observable.from(lst);
+            }
+        })
+        .subscribe(observerForTxt1)
+        ;
+
+//        subjectFlatMap.subscribe(observerForTxt1);
+        subjectFlatMap.subscribe(observerForTxt2);
+
+        btnFlatMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                subjectFlatMap.onNext(Integer.parseInt(editText1.getText().toString()));
+            }
+        });
     }
 
     private Observer<Integer> createObserverForTxt1() {
@@ -84,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
             public void onNext(Integer num) {
                 Log.e(TAG, "onNext: " + num);
                 txt1.setText(num + "");
+                counter ++ ;
+                txtCounter.setText(counter + "");
             }
         };
 
@@ -125,11 +158,10 @@ public class MainActivity extends AppCompatActivity {
     }*/
 
 
-
     private class Button2Listener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            publishSubject.onNext(Integer.parseInt(editText1.getText().toString()));
+            publishSubjectMap.onNext(Integer.parseInt(editText1.getText().toString()));
         }
     }
 
