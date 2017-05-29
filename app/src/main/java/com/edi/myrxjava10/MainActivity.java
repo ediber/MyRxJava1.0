@@ -12,6 +12,7 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
@@ -66,22 +67,25 @@ public class MainActivity extends AppCompatActivity {
                 return number + 1;
             }
         })
-                .observeOn(Schedulers.newThread())    // new thread
+                .observeOn(AndroidSchedulers.mainThread())   // everything above this works on **Main** Thread
                 .map(new Func1<Integer, Integer>() {
                     @Override
                     public Integer call(Integer number) {
                         try {
-                            Thread.sleep(10000);
+                            Thread.sleep(4000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                         return number + 7;
                     }
                 })
+                .observeOn(Schedulers.newThread())    // everything above this works on **new** Thread
+//                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(observerForTxt1);
 
         Observer<Integer> observerForTxt2 = createObserverForTxt2();
-        subscription = publishSubjectMap.subscribe(observerForTxt2);
+//        subscription = publishSubjectMap.subscribe(observerForTxt2);
 
         btnMap.setOnClickListener(new Button2Listener());
 
@@ -114,17 +118,17 @@ public class MainActivity extends AppCompatActivity {
         Observer<Integer> observer = new Observer<Integer>() {
             @Override
             public void onCompleted() {
-                Log.e(TAG, "onComplete: All Done!");
+                Log.e(TAG, "onComplete 1: All Done!");
             }
 
             @Override
             public void onError(Throwable e) {
-                Log.e(TAG, "onError: ");
+                Log.e(TAG, "onError 1: ", e);
             }
 
             @Override
             public void onNext(Integer num) {
-                Log.e(TAG, "onNext: " + num);
+                Log.e(TAG, "onNext 1: " + num);
                 txt1.setText(num + "");
                 counter++;
                 txtCounter.setText(counter + "");
@@ -138,17 +142,17 @@ public class MainActivity extends AppCompatActivity {
         Observer<Integer> observer = new Observer<Integer>() {
             @Override
             public void onCompleted() {
-                Log.e(TAG, "onComplete: All Done!");
+                Log.e(TAG, "onComplete 2: All Done!");
             }
 
             @Override
             public void onError(Throwable e) {
-                Log.e(TAG, "onError: ");
+                Log.e(TAG, "onError 2: ");
             }
 
             @Override
             public void onNext(Integer num) {
-                Log.e(TAG, "onNext: " + num);
+                Log.e(TAG, "onNext 2: " + num);
                 txt2.setText(num + "");
             }
         };

@@ -30,6 +30,8 @@ dependencies {
 
     // RX
     compile 'io.reactivex:rxjava:1.1.6'
+    compile "io.reactivex:rxandroid:1.1.0"
+
 
     // butter knife
     compile 'com.jakewharton:butterknife:8.5.1'
