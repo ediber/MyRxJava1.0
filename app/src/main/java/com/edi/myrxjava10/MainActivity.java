@@ -58,31 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
         //  map example ***********************************************************
         Observer<Integer> observerForTxt1 = createObserverForTxt1();
+        publishSubjectMap = createPublishSubjectMap(observerForTxt1);
 
-        // PublishSubject extends observabale, next can be invoked after creation
-        publishSubjectMap = PublishSubject.create();
-        publishSubjectMap.map(new Func1<Integer, Integer>() {
-            @Override
-            public Integer call(Integer number) {
-                return number + 1;
-            }
-        })
-                .observeOn(AndroidSchedulers.mainThread())   // everything above this works on **Main** Thread
-                .map(new Func1<Integer, Integer>() {
-                    @Override
-                    public Integer call(Integer number) {
-                        try {
-                            Thread.sleep(4000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        return number + 7;
-                    }
-                })
-                .observeOn(Schedulers.newThread())    // everything above this works on **new** Thread
-//                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(observerForTxt1);
 
         Observer<Integer> observerForTxt2 = createObserverForTxt2();
 //        subscription = publishSubjectMap.subscribe(observerForTxt2);
@@ -113,6 +90,66 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private PublishSubject createPublishSubjectMap(Observer<Integer> observerForTxt1) {
+        // PublishSubject extends observabale, next can be invoked after creation
+        PublishSubject publishSubjectMap = PublishSubject.create();
+        publishSubjectMap.map(new Func1<Integer, Integer>() {
+            @Override
+            public Integer call(Integer number) {
+                return number + 1;
+            }
+        })
+                .observeOn(Schedulers.newThread())    // everything after this works on **NEW** Thread
+                .map(new Func1<Integer, Integer>() {
+                    @Override
+                    public Integer call(Integer number) {
+                        try {
+                            Thread.sleep(4000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        return number + 7;
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(observerForTxt1);
+
+        return publishSubjectMap;
+    }
+
+/*    private void createObservabaleMap(Observer<Integer> observerForTxt1) {
+        // PublishSubject extends observabale, next can be invoked after creation
+        Observable<Integer> observable = Observable.create(new Observable.OnSubscribe<Integer>() {
+            @Override
+            public void call(Subscriber<? super Integer> subscriber) {
+
+            }
+        });
+
+        publishSubjectMap.map(new Func1<Integer, Integer>() {
+            @Override
+            public Integer call(Integer number) {
+                return number + 1;
+            }
+        })
+                .observeOn(Schedulers.newThread())    // everything after this works on **NEW** Thread
+                .map(new Func1<Integer, Integer>() {
+                    @Override
+                    public Integer call(Integer number) {
+                        try {
+                            Thread.sleep(4000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        return number + 7;
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(observerForTxt1);
+    }*/
 
     private Observer<Integer> createObserverForTxt1() {
         Observer<Integer> observer = new Observer<Integer>() {
@@ -159,18 +196,6 @@ public class MainActivity extends AppCompatActivity {
 
         return observer;
     }
-
-/*    private Observable<Integer> createObservable() {
-        Observable<Integer> observable = Observable.create(new Observable.OnSubscribe<Integer>() {
-
-            @Override
-            public void call(Subscriber<? super Integer> subscriber) {
-
-            }
-        });
-
-        return observable;
-    }*/
 
 
     private class Button2Listener implements View.OnClickListener {
